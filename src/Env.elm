@@ -5,8 +5,8 @@ module Env exposing (..)
 
 
 workosClientId =
-    "client_01GQYYM8T2DNRAV8Y1JHSM6CVP"
+    "carl"
 
 
 workosApiKey =
-    "sk_test_a2V5XzAxR1FZWU04U1dWOUgzRVM2OVQ4MTMxMzBTLDk2SkNmdEZsVHE0VlBNTU53dXBYNlZIRFY"
+    "carl"

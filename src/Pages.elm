@@ -1,14 +1,15 @@
 module Pages exposing (..)
 
+import AppUrl exposing (AppUrl)
 import Dict
 import Effect exposing (Effect)
 import Html
 import Page
+import Page.Authenticate
 import Page.Game
 import Page.Home
 import Route exposing (Route)
 import SharedModel exposing (SharedModel)
-import Url exposing (Url)
 import User exposing (User(..))
 import View exposing (..)
 
@@ -16,42 +17,30 @@ import View exposing (..)
 type Msg
     = HomeMsg Page.Home.Msg
     | GameMsg Page.Game.Msg
+    | AuthenticateMsg Page.Authenticate.Msg
 
 
 type Page
     = Blank
     | Home Page.Home.Model
     | Game Page.Game.Model
+    | Authenticate Page.Authenticate.Model
 
 
-changeRouteTo : Url -> Route -> User -> SharedModel -> Page -> ( Page, Effect Msg )
+changeRouteTo : AppUrl -> Route -> User -> SharedModel -> Page -> ( Page, Effect Msg )
 changeRouteTo url route user sharedModel page =
     case route of
         Route.Home ->
-            let
-                carl : Page.Update Page.Home.Model Page.Home.Msg
-                carl =
-                    Page.Home.init Dict.empty sharedModel
-
-                carl2 : Page.Update Page.Home.Model Page.Home.Msg -> ( Page, Effect Msg )
-                carl2 =
-                    updateWith Home HomeMsg
-            in
-            carl
-                |> carl2
+            Page.Home.init url.queryParameters sharedModel
+                |> updateWith Home HomeMsg
 
         Route.Game ->
-            let
-                carl : Page.Update Page.Game.Model Page.Game.Msg
-                carl =
-                    Page.Game.init Dict.empty sharedModel
+            Page.Game.init url.queryParameters sharedModel
+                |> updateWith Game GameMsg
 
-                carl2 : Page.Update Page.Game.Model Page.Game.Msg -> ( Page, Effect Msg )
-                carl2 =
-                    updateWith Game GameMsg
-            in
-            carl
-                |> carl2
+        Route.Authenticate ->
+            Page.Authenticate.init url.queryParameters sharedModel
+                |> updateWith Authenticate AuthenticateMsg
 
 
 
@@ -68,6 +57,10 @@ update sharedModel msg_ page =
         ( GameMsg msg, Game model ) ->
             Page.Game.update sharedModel msg model
                 |> updateWith Game GameMsg
+
+        ( AuthenticateMsg msg, Authenticate model ) ->
+            Page.Authenticate.update sharedModel msg model
+                |> updateWith Authenticate AuthenticateMsg
 
         _ ->
             ( page, Effect.none )
@@ -118,6 +111,9 @@ view user sharedModel page =
 
         Game model ->
             viewPage GameMsg (Page.Game.view model)
+
+        Authenticate model ->
+            viewPage AuthenticateMsg (Page.Authenticate.view model)
 
 
 default : Page

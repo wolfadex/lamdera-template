@@ -1,6 +1,7 @@
 module Effect exposing
     ( Effect
     , application
+    , authenticate
     , batch
     , fromCmd
     , loadUrl
@@ -39,6 +40,7 @@ type Effect msg
     | LoadUrl String
     | Logout
     | LoginOrSignup String
+    | Authenticate String
 
 
 application :
@@ -97,6 +99,9 @@ perform ignore ( model, effect ) =
         LoginOrSignup email ->
             ( model, Lamdera.sendToBackend (BE_LoginOrSignup email) )
 
+        Authenticate token ->
+            ( model, Lamdera.sendToBackend (BE_Authenticate token) )
+
 
 batchEffect : (String -> msg) -> Effect msg -> ( { a | key : Nav.Key, sharedModel : SharedModel }, List (Cmd msg) ) -> ( { a | key : Nav.Key, sharedModel : SharedModel }, List (Cmd msg) )
 batchEffect ignore effect ( model, cmds ) =
@@ -150,6 +155,9 @@ map changeMsg effect =
         LoginOrSignup email ->
             LoginOrSignup email
 
+        Authenticate token ->
+            Authenticate token
+
 
 pushUrl : Url -> Effect msg
 pushUrl =
@@ -171,6 +179,11 @@ loadUrl href =
 loginOrSignup : String -> Effect msg
 loginOrSignup =
     LoginOrSignup
+
+
+authenticate : String -> Effect msg
+authenticate =
+    Authenticate
 
 
 logout : Effect msg

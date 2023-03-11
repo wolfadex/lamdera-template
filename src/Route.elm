@@ -1,21 +1,25 @@
 module Route exposing
     ( Route(..)
-    , parse
+    , fromUrl
     , toString
     )
 
 import AppUrl exposing (AppUrl)
+import Dict
 import Url exposing (Url)
 
 
-parse : Url -> Route
-parse url =
-    case (AppUrl.fromUrl url).path of
+fromUrl : AppUrl -> Route
+fromUrl url =
+    case url.path of
         [] ->
             Home
 
         [ "game" ] ->
             Game
+
+        [ "authenticated" ] ->
+            Authenticate
 
         _ ->
             Home
@@ -30,7 +34,11 @@ toString route =
         Game ->
             "/game"
 
+        Authenticate ->
+            "/authenticated"
+
 
 type Route
     = Home
     | Game
+    | Authenticate

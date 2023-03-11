@@ -1,6 +1,6 @@
 module Frontend exposing (..)
 
-import AppUrl
+import AppUrl exposing (AppUrl)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Dict
@@ -62,9 +62,13 @@ viewMap toMsg v =
 init : User -> Url -> Nav.Key -> ( FrontendModel, Effect FrontendMsg )
 init user url key =
     let
+        appUrl : AppUrl
+        appUrl =
+            AppUrl.fromUrl url
+
         ( model, effect ) =
-            changeRouteTo url
-                (Route.parse url)
+            changeRouteTo appUrl
+                (Route.fromUrl appUrl)
                 { user = user
                 , key = key
                 , page = Pages.default
@@ -76,7 +80,7 @@ init user url key =
     )
 
 
-changeRouteTo : Url -> Route -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
+changeRouteTo : AppUrl -> Route -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 changeRouteTo url route model =
     Pages.changeRouteTo url route model.user model.sharedModel model.page
         |> fromPage model
@@ -97,7 +101,12 @@ update msg model =
                     ( model, Effect.loadUrl href )
 
         UrlChanged url ->
-            changeRouteTo url (Route.parse url) model
+            let
+                appUrl : AppUrl
+                appUrl =
+                    AppUrl.fromUrl url
+            in
+            changeRouteTo appUrl (Route.fromUrl appUrl) model
 
         PageMsg pageMsg ->
             Pages.update model.sharedModel pageMsg model.page
@@ -121,6 +130,11 @@ updateFromBackend msg model =
     case msg of
         NoOpToFrontend ->
             ( model, Effect.none )
+
+        RedirectTo route ->
+            ( model
+            , Effect.pushRoute route
+            )
 
 
 whenAuthenticated : FrontendModel -> ( FrontendModel, Effect msg ) -> ( FrontendModel, Effect msg )

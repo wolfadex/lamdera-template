@@ -109,8 +109,20 @@ update msg model =
         AuthenticateResponded _ (Err err) ->
             ( model, Cmd.none )
 
-        AuthenticateResponded sessionId (Ok err) ->
-            ( model, Cmd.none )
+        AuthenticateResponded sessionId (Ok profile) ->
+            case Dict.get sessionId model.sessions of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just session ->
+                    ( { model
+                        | sessions =
+                            Dict.insert sessionId
+                                { session | workOsProfile = Just profile }
+                                model.sessions
+                      }
+                    , sendToSession (RedirectTo Route.Game) session
+                    )
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> BackendModel -> ( BackendModel, Cmd BackendMsg )
@@ -227,3 +239,11 @@ jsonResolver decoder =
 
                         Ok a ->
                             Ok a
+
+
+sendToSession : ToFrontend -> Session -> Cmd BackendMsg
+sendToSession toFrontendMsg session =
+    session.clients
+        |> Set.toList
+        |> List.map (\clientId -> Lamdera.sendToFrontend clientId toFrontendMsg)
+        |> Cmd.batch
